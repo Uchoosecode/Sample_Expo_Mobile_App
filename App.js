@@ -3,8 +3,10 @@ import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import imageshare from './assets/imageshare.png';
 import * as  ImagePicker from 'expo-image-picker';
+import * as Sharing from 'expo-sharing';
 
 export default function App() {
+  const [selectedImage, setSelectedImage] = React.useState(null);
 
   let openImagePickerAsync = async () => {
 
@@ -15,19 +17,34 @@ export default function App() {
       }
 
     let pickerResult = await ImagePicker.launchImageLibraryAsync();
-    console.log(pickerResult);
+    
+      if (pickerResult.canceled === true) {
+        return;
+      }
+
+      setSelectedImage({ localUri: pickerResult.uri });
+  };
+
+  if (selectedImage !== null) {
+    return (
+      <View style={styles.container}>
+        <Image 
+          source={{ uri: selectedImage.localUri }}
+          style={styles.thumbnail} />
+      </View>
+    );
   }
 
   return (
 
     <View style={styles.container}>
-      
+
       <Image source={imageshare} style={styles.logo} />
 
       <Text style={styles.instructions}>To share photos from your phone with a friend, just to press the button below!</Text>
 
       <TouchableOpacity
-        onPress={() => alert('Button works')}
+        onPress={openImagePickerAsync}
         style={styles.button}>
           <Text
             style={styles.buttonText}>Pick A Photo</Text>
@@ -64,5 +81,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#0033cc',
-  }
+  },
+  thumbnail: {
+    width: 300,
+    height: 300,
+    resizeMode: "contain",
+  },
 });
