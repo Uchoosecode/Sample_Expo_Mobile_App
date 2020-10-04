@@ -9,6 +9,7 @@ import uploadToAnonymousFilesAsync from 'anonymous-files';
 export default function App() {
   const [selectedImage, setSelectedImage] = React.useState(null);
 
+  // Request async permission to access the Camera Roll.
   let openImagePickerAsync = async () => {
 
     let permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -23,12 +24,20 @@ export default function App() {
         return;
       }
 
-      setSelectedImage({ localUri: pickerResult.uri });
+      // allows application to work the web platforms
+      if (Platform.OS === 'web') {
+        let remoteUri = await uploadToAnonymousFilesAsync(pickerResult.uri);
+        setSelectedImage({ localUri: pickerResult.uri, remoteUri});
+      } else {
+        setSelectedImage({ localUri: pickerResult.uri, remoteUri: null});
+      }
+
   };
 
+  // Request async Dialog to share photos
   let openShareDialogAsync = async () => {
     if (!(await Sharing.isAvailableAsync())) {
-      alert("Uh oh, sharing isn't available on your platform!");
+      alert(`The image is available for sharing at: ${selectedImage.remoteUri}`);
       return;
     }
 
@@ -85,6 +94,7 @@ export default function App() {
   );
 }
 
+// Creates stylesheets method for App
 const styles = StyleSheet.create({
   container: {
     flex: 1,
